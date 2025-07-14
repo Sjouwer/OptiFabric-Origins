@@ -1,13 +1,15 @@
 package me.modmuss50.optifabric.util;
 
-import net.fabricmc.loader.impl.lib.mappingio.MappingReader;
 import net.fabricmc.loader.impl.lib.mappingio.format.tiny.Tiny1FileReader;
 import net.fabricmc.loader.impl.lib.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.loader.impl.lib.tinyremapper.IMappingProvider;
 import net.fabricmc.loader.impl.lib.tinyremapper.NonClassCopyMode;
 import net.fabricmc.loader.impl.lib.tinyremapper.OutputConsumerPath;
 import net.fabricmc.loader.impl.lib.tinyremapper.TinyRemapper;
-import net.fabricmc.loader.impl.util.mappings.TinyRemapperMappingsHelper;
+import net.fabricmc.loader.impl.lib.tinyremapper.TinyUtils;
+import net.fabricmc.loader.impl.lib.tinyremapper.api.TrLogger;
+import net.fabricmc.loader.impl.util.log.LogCategory;
+import net.fabricmc.loader.impl.util.log.TinyRemapperLoggerAdapter;
 
 import java.io.File;
 import java.io.FileReader;
@@ -26,7 +28,7 @@ public class RemapUtils {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return TinyRemapperMappingsHelper.create(tree, from, to);
+        return TinyUtils.createMappingProvider(tree, from, to);
 	}
 
 	public static void mapJar(Path output, Path input, File mappings, List<Path> libraries, String from, String to) throws IOException {
@@ -36,7 +38,8 @@ public class RemapUtils {
 	public static void mapJar(Path output, Path input, IMappingProvider mappings, List<Path> libraries) throws IOException {
 		Files.deleteIfExists(output);
 
-		TinyRemapper remapper = TinyRemapper.newRemapper().withMappings(mappings).renameInvalidLocals(true).rebuildSourceFilenames(true).build();
+		TrLogger logger = new TinyRemapperLoggerAdapter(LogCategory.MOD_REMAP);
+		TinyRemapper remapper = TinyRemapper.newRemapper(logger).withMappings(mappings).renameInvalidLocals(true).rebuildSourceFilenames(true).build();
 
 		try {
 			OutputConsumerPath outputConsumer = new OutputConsumerPath.Builder(output).build();
